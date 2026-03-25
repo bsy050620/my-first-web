@@ -1,64 +1,84 @@
-import Image from "next/image";
-
 export default function Home() {
+  const posts = [
+    {
+      id: 1,
+      title: "첫 번째 블로그 포스트",
+      excerpt: "이것은 블로그의 첫 번째 포스트입니다. 여기에 흥미로운 내용을 작성할 수 있습니다.",
+      date: "2024년 3월 25일",
+      category: "일반"
+    },
+    {
+      id: 2,
+      title: "데이터 분석에 대해",
+      excerpt: "빅데이터와 공공데이터 분석에 대한 유용한 팁과 경험을 공유합니다.",
+      date: "2024년 3월 20일",
+      category: "빅데이터"
+    },
+    {
+      id: 3,
+      title: "기술 블로그 시작",
+      excerpt: "이 블로그에서는 학습한 내용과 경험을 기록하고 공유하겠습니다.",
+      date: "2024년 3월 15일",
+      category: "기술"
+    }
+  ];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-gray-50">
+      {/* 헤더 */}
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-4 py-12">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            백서연
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-lg text-gray-600 mb-4">
+            공공인재빅데이터융합학을 전공하는 블로거입니다.
           </p>
+          <div className="flex gap-6 text-gray-600">
+            <div>
+              <p className="text-sm text-gray-500">학교</p>
+              <p className="font-medium">한신대학교</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">전공</p>
+              <p className="font-medium">공공인재빅데이터융합학</p>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+      </header>
+
+      {/* 메인 콘텐츠 */}
+      <main className="max-w-4xl mx-auto px-4 py-12">
+        <section>
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">최근 포스트</h2>
+          
+          <div className="space-y-6">
+            {posts.map((post) => (
+              <article
+                key={post.id}
+                className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6 border border-gray-200"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="text-xl font-semibold text-gray-900 hover:text-blue-600 cursor-pointer">
+                    {post.title}
+                  </h3>
+                  <span className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full whitespace-nowrap">
+                    {post.category}
+                  </span>
+                </div>
+                
+                <p className="text-gray-600 mb-4">{post.excerpt}</p>
+                
+                <div className="flex justify-between items-center">
+                  <time className="text-sm text-gray-500">{post.date}</time>
+                  <a href="#" className="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                    더 읽기 →
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
       </main>
     </div>
   );
