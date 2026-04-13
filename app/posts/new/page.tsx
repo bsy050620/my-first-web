@@ -7,9 +7,16 @@ export default function NewPostPage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (title.trim() === "") {
+      setError("제목을 입력해주세요.");
+      return;
+    }
+
+    // TODO: 실제 저장 로직을 연결하세요 (API 호출 또는 서버 액션)
     alert("저장되었습니다");
     router.push("/posts");
   };
@@ -19,6 +26,7 @@ export default function NewPostPage() {
       <h1 className="text-2xl font-bold mb-6">새 게시글 작성</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {error && <p className="text-red-600">{error}</p>}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">제목</label>
           <input
