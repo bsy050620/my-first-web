@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { posts } from "@/lib/posts";
+import PostActions from "@/components/PostActions";
 
 type Props = {
   params: { id: string } | Promise<{ id: string }>;
@@ -32,9 +33,12 @@ export default async function PostPage({ params }: Props) {
 
       <div className="prose prose-lg mb-8">{post.content}</div>
 
-      <Link href="/posts" className="text-blue-600 hover:underline">
-        목록으로 돌아가기
-      </Link>
+      <div className="flex items-center gap-4">
+        <Link href="/posts" className="text-blue-600 hover:underline">
+          목록으로 돌아가기
+        </Link>
+        <PostActions postId={post.id} />
+      </div>
     </article>
   );
 }

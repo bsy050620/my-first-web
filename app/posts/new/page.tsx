@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function NewPostPage() {
   const router = useRouter();
@@ -29,11 +31,11 @@ export default function NewPostPage() {
         {error && <p className="text-red-600">{error}</p>}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">제목</label>
-          <input
+          <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="제목을 입력하세요"
-            className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full"
           />
         </div>
 
@@ -44,25 +46,14 @@ export default function NewPostPage() {
             onChange={(e) => setContent(e.target.value)}
             placeholder="내용을 입력하세요"
             rows={8}
-            className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full rounded-lg border border-input px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring/50"
           />
         </div>
 
         <div className="flex items-center space-x-3">
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
-          >
-            저장
-          </button>
+          <Button type="submit">저장</Button>
 
-          <button
-            type="button"
-            onClick={() => router.push("/posts")}
-            className="text-gray-600 hover:underline"
-          >
-            취소
-          </button>
+          <Button variant="ghost" onClick={() => router.push("/posts")}>취소</Button>
         </div>
       </form>
     </div>

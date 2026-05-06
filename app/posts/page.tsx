@@ -1,5 +1,6 @@
 import { posts as localPosts, type Post } from "@/lib/posts";
 import SearchBar from "./SearchBar";
+import NewPostButton from "@/components/NewPostButton";
 
 export default async function PostsPage() {
   const url = "https://jsonplaceholder.typicode.com/posts?_limit=10";
@@ -26,7 +27,10 @@ export default async function PostsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">블로그</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">블로그</h1>
+        <NewPostButton />
+      </div>
       <SearchBar posts={initialPosts} />
     </div>
   );
