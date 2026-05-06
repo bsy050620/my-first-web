@@ -4,7 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabase/client";
+
+const isSupabaseConfigured = Boolean(
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 export default function LoginPage() {
   const router = useRouter();
@@ -44,12 +48,12 @@ export default function LoginPage() {
         {error && <p className="text-sm text-destructive">{error}</p>}
         <div>
           <label className="block text-sm font-medium text-muted-foreground mb-1">이메일</label>
-          <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+          <Input value={email} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)} placeholder="you@example.com" />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-muted-foreground mb-1">비밀번호</label>
-          <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
+          <Input type="password" value={password} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)} placeholder="Password" />
         </div>
 
         <div className="flex items-center gap-3">
