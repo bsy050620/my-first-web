@@ -158,6 +158,113 @@
 ---
 ---
 
+## Tech Stack
+
+- **프레임워크**: Next.js 16 (App Router)
+- **스타일**: Tailwind CSS v4
+- **UI**: shadcn/ui (Radix primitives + Tailwind)
+- **DB / Auth / Storage**: Supabase (Postgres + Auth + Storage)
+- **배포**: Vercel 또는 유사 플랫폼
+
+## Component Hierarchy (권장)
+
+- `components/ui/*` (Atomic)
+  - `Button`, `Input`, `Card`, `Dialog`, `Toast` 등 — shadcn에서 생성된 래퍼와 design-token 연결
+- `components/common/*` (Shared)
+  - `Header`, `Footer`, `Avatar`, `SearchBar` — 레이아웃 공통 컴포넌트
+- `components/posts/*` (Domain)
+  - `PostCard` (`Card` 기반) — 목록/추천용 프리뷰
+  - `PostList` / `PostGrid` — 그리드/리스트 레이아웃 래퍼
+  - `PostForm` — 작성 및 편집(제목: `Input`, 메타: `Input`, 내용: 에디터)
+  - `PostActions` — 편집/삭제/공개 토글 (클라이언트 컴포넌트)
+- `app/...` (Pages)
+  - 각 route 폴더는 Server Component로 데이터 페칭 담당, 클라이언트 상호작용은 하위 컴포넌트에 위임
+
+컴포넌트 책임 요약:
+- Presentational (`components/ui/*`): 스타일과 API만 제공
+- Behavioral (`components/*`): 데이터 호출, 이벤트 핸들링, 서버 액션 호출
+
+## 디자인 토큰
+
+디자인 토큰은 `app/globals.css`에 정의하며, 전역으로 다음 변수를 사용합니다:
+- 색상: `--background`, `--foreground`, `--primary`, `--secondary`, `--muted`, `--card`, `--border`, `--accent`, `--destructive`
+- 반경: `--radius`, `--radius-md` 등
+- 포커스/링: `--ring` (투명도 낮게 설정)
+
+규칙:
+- Tailwind 클래스 사용시 직접 `text-gray-...` 대신 토큰 기반 유틸(`text-foreground`, `text-muted-foreground`, `bg-card`, `border-border`)을 우선 사용합니다(프로젝트 규칙: copilot-instructions.md).
+- 버튼/인풋/카드의 색상·윤곽은 토큰을 통해 통일하고, 그라디언트/강한 그림자 사용 금지.
+
+## DB 스키마 (Supabase / Postgres 권장)
+
+아래는 최소한의 `users` / `posts` 스키마 설계(타입은 Postgres 표기 기준).
+
+- `users` table
+  - `id` UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  - `email` TEXT UNIQUE NOT NULL
+  - `username` TEXT UNIQUE
+  - `name` TEXT
+  - `bio` TEXT
+  - `avatar_url` TEXT
+  - `role` TEXT DEFAULT 'user'
+  - `created_at` TIMESTAMP WITH TIME ZONE DEFAULT now()
+  - `updated_at` TIMESTAMP WITH TIME ZONE
+
+  > 인증은 Supabase Auth를 사용하므로 비밀번호 해시 관리는 Supabase에서 처리합니다. `users` 테이블은 프로필 중심 필드 보유.
+
+- `posts` table
+  - `id` UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  - `author_id` UUID REFERENCES users(id) ON DELETE SET NULL
+  - `title` TEXT NOT NULL
+  - `slug` TEXT UNIQUE NOT NULL
+  - `excerpt` TEXT
+  - `content` TEXT NOT NULL
+  - `status` TEXT DEFAULT 'draft' -- enum: draft/published/archived
+  - `published_at` TIMESTAMP WITH TIME ZONE
+  - `created_at` TIMESTAMP WITH TIME ZONE DEFAULT now()
+  - `updated_at` TIMESTAMP WITH TIME ZONE
+
+인덱스/성능:
+- `posts(slug)` 유니크 인덱스
+- `posts(author_id)` 인덱스
+- 전체 텍스트 검색이 필요하면 Postgres FTS 또는 외부 검색(Algolia, Meilisearch) 고려
+
+## 인증 (Email / Password with Supabase)
+
+- 가입 흐름
+  1. 클라이언트에서 `/signup` 폼 제출 → Supabase Auth의 `signUp({ email, password })`
+  2. 이메일 확인(옵션) → Supabase가 관리
+  3. 성공 시 `users` 프로필 레코드 생성(웹훅 또는 서버 함수에서 동기화)
+
+- 로그인 흐름
+  1. `/login` 폼에서 `signInWithPassword({ email, password })`
+  2. 성공하면 Supabase가 세션/쿠키 발급(또는 액세스 토큰 반환)
+  3. 서버에서 인증이 필요한 API 호출 시 Supabase JWT/서비스 키로 검증
+
+- 세션 / 보호 라우트
+  - Server Components에서 쿠키 또는 Supabase Server SDK로 세션 확인 후 접근 제어
+  - 클라이언트(예: `PostActions`)는 로그인 여부에 따라 UI 분기
+
+## 각 페이지의 주요 컴포넌트 및 데이터 흐름
+
+- `/` (홈)
+  - 주요 컴포넌트: `Header`, `Hero`, `PostGrid`(최신/추천), `Footer`
+  - 데이터 흐름: Server Component가 최신/추천 포스트를 페칭 → `PostCard`로 렌더링
+
+- `/posts` (포스트 목록)
+  - 주요 컴포넌트: `Header`, `SearchBar`(클라이언트), `PostList`/`PostGrid`, `Pagination`
+  - 데이터 흐름: Server Component가 필터/페이지 파라미터로 DB 쿼리 → 클라이언트측 `SearchBar`는 로컬 필터 또는 서버 API 호출로 검색
+
+- `/posts/new` (포스트 작성)
+  - 주요 컴포넌트: `PostForm`(클라이언트), `Input`(제목), 에디터(본문), `Button`(저장)
+  - 데이터 흐름: 클라이언트에서 폼 제출 → 서버 액션 또는 API 라우트로 전달 → DB에 `posts` 레코드 생성 → redirect `/posts/[id]`
+
+- `/posts/[id]` (포스트 상세)
+  - 주요 컴포넌트: `PostContent`, `PostMeta`, `PostActions`(클라이언트, 작성자 전용), `Comments`(선택)
+  - 데이터 흐름: Server Component가 `posts` 레코드와 작성자 프로필을 함께 페칭 → 렌더링. `PostActions`는 클라이언트에서 삭제/편집 액션 처리(확인 다이얼로그 후 API 호출).
+
+---
+
 ## 구현 메모
 
 - UI 가이드: Server Components 우선, 클라이언트 상호작용 필요 시 `"use client"` 사용

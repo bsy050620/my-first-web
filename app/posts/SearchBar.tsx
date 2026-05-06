@@ -65,7 +65,7 @@ export default function SearchBar({ posts }: Props) {
         className="mb-4"
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((post) => (
           <Card key={post.id} className="p-0">
             <CardHeader>
@@ -85,10 +85,10 @@ export default function SearchBar({ posts }: Props) {
               <div className="flex items-center gap-2">
                 <Dialog open={open && selectedId === post.id} onOpenChange={setOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(post.id)}>
-                      삭제
-                    </Button>
-                  </DialogTrigger>
+                      <Button variant="destructive" onClick={() => handleDelete(post.id)}>
+                        삭제
+                      </Button>
+                    </DialogTrigger>
 
                   <DialogContent>
                     <DialogHeader>
@@ -107,7 +107,7 @@ export default function SearchBar({ posts }: Props) {
                 </Dialog>
 
                 <Link href={`/posts/${post.id}`} className="">
-                  <Button variant="ghost" size="sm">상세</Button>
+                  <Button variant="ghost">상세</Button>
                 </Link>
               </div>
             </CardFooter>
