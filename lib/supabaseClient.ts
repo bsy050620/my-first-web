@@ -1,37 +1,9 @@
 "use client";
 
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Re-export the single browser Supabase client to avoid multiple client instances
+// across the app. The canonical client lives in `lib/supabase/client.ts`.
+export { supabase } from "./supabase/client";
 
 export const isSupabaseConfigured = Boolean(
-  supabaseUrl && supabaseAnonKey
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
-
-const stub = {
-  auth: {
-    async signInWithPassword(_: { email: string; password: string }) {
-      return {
-        data: null,
-        error: {
-          message:
-            "Supabase not configured (set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY)",
-        },
-      };
-    },
-    async signUp(_: { email: string; password: string }) {
-      return {
-        data: null,
-        error: {
-          message:
-            "Supabase not configured (set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY)",
-        },
-      };
-    },
-  },
-} as any;
-
-export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl!, supabaseAnonKey!)
-  : stub;
