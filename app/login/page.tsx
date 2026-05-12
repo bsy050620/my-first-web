@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase/client";
@@ -12,10 +12,18 @@ const isSupabaseConfigured = Boolean(
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (searchParams?.get("logged_out") === "1") {
+      setInfoMessage("로그아웃 되었습니다.");
+    }
+  }, [searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -41,6 +49,7 @@ export default function LoginPage() {
   return (
     <div className="max-w-md mx-auto py-12 px-4">
       <h1 className="text-2xl font-bold mb-4">로그인</h1>
+      {infoMessage && <p className="text-sm text-muted-foreground">{infoMessage}</p>}
       <form onSubmit={handleSubmit} className="space-y-4">
         {!isSupabaseConfigured && (
           <p className="text-sm text-yellow-600">Supabase 환경변수가 설정되어 있지 않습니다. `.env.local`의 `NEXT_PUBLIC_SUPABASE_URL`과 `NEXT_PUBLIC_SUPABASE_ANON_KEY`를 채우고 서버를 재시작하세요.</p>

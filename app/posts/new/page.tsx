@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase/client";
 
 export default function NewPostPage() {
   const router = useRouter();
@@ -11,16 +12,45 @@ export default function NewPostPage() {
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     if (title.trim() === "") {
       setError("제목을 입력해주세요.");
       return;
     }
 
-    // TODO: 실제 저장 로직을 연결하세요 (API 호출 또는 서버 액션)
-    alert("저장되었습니다");
-    router.push("/posts");
+    try {
+      // 현재 로그인한 사용자의 id를 가져옵니다
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData?.user) {
+        const msg = userError?.message ?? "로그인 정보가 없습니다.";
+        setError(msg);
+        console.error("getUser error", userError);
+        return;
+      }
+
+      const user_id = userData.user.id;
+
+      // posts 테이블에 insert
+      const { data, error: insertError } = await supabase.from("posts").insert([{
+        title,
+        content,
+        user_id,
+      }]);
+
+      if (insertError) {
+        setError(insertError.message);
+        console.error("insert error", insertError);
+        return;
+      }
+
+      // 성공 시 이동
+      router.push("/posts");
+    } catch (err: any) {
+      setError(err?.message ?? String(err));
+      console.error(err);
+    }
   };
 
   return (

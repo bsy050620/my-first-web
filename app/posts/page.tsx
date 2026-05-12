@@ -1,6 +1,8 @@
 import { posts as localPosts, type Post } from "@/lib/posts";
 import NewPostButton from "@/components/NewPostButton";
 import Link from "next/link";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import {
   Card,
   CardHeader,
@@ -11,26 +13,30 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-export default async function PostsPage() {
-  const url = "https://jsonplaceholder.typicode.com/posts?_limit=10";
+export const dynamic = "force-dynamic";
 
+export default async function PostsPage() {
   let initialPosts: Post[] = localPosts;
 
   try {
-    const res = await fetch(url, { next: { revalidate: 60 } });
-    if (res.ok) {
-      const data = await res.json();
-      // map JSONPlaceholder shape to local Post type
-      initialPosts = data.map((p: any, idx: number) => ({
+    const supabase = createServerClient({ cookies });
+    const { data, error } = await supabase
+      .from("posts")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Supabase select error:", error);
+    } else if (data) {
+      initialPosts = data.map((p: any) => ({
         id: p.id,
         title: p.title,
-        content: p.body,
-        author: `User ${p.userId ?? idx + 1}`,
-        date: new Date().toISOString().slice(0, 10),
+        content: p.content,
+        author: p.user_id ?? "",
+        date: p.created_at ? new Date(p.created_at).toISOString().slice(0, 10) : "",
       }));
     }
   } catch (e) {
-    // fetch 실패 시 로컬 더미를 사용
     console.error("Failed to fetch posts:", e);
   }
 

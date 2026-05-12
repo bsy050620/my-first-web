@@ -22,13 +22,14 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: authError } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
       });
-      if (authError) {
-        setError(authError.message);
+      if (signUpError) {
+        setError(signUpError.message);
       } else {
+        // 가입 성공: 이메일 인증 흐름을 따르도록 /login으로 이동
         router.push("/login");
       }
     } catch (e: any) {
