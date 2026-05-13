@@ -1,7 +1,7 @@
 import { posts as localPosts, type Post } from "@/lib/posts";
 import NewPostButton from "@/components/NewPostButton";
 import Link from "next/link";
-import { createServerClient } from "@supabase/ssr";
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import {
   Card,
@@ -19,11 +19,7 @@ export default async function PostsPage() {
   let initialPosts: Post[] = localPosts;
 
   try {
-    const supabase = createServerClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_ANON_KEY!,
-      { cookies },
-    );
+    const supabase = createServerComponentClient({ cookies });
     const { data, error } = await supabase
       .from("posts")
       .select("*")
