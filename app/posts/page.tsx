@@ -19,7 +19,11 @@ export default async function PostsPage() {
   let initialPosts: Post[] = localPosts;
 
   try {
-    const supabase = createServerClient({ cookies });
+    const supabase = createServerClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_ANON_KEY!,
+      { cookies },
+    );
     const { data, error } = await supabase
       .from("posts")
       .select("*")
