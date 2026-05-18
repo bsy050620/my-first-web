@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase/client";
+import { signUpWithEmail } from "@/lib/auth";
 
 const isSupabaseConfigured = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -22,14 +22,10 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
     try {
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+      const { data: signUpData, error: signUpError } = await signUpWithEmail(email, password);
       if (signUpError) {
         setError(signUpError.message);
       } else {
-        // 가입 성공: 이메일 인증 흐름을 따르도록 /login으로 이동
         router.push("/login");
       }
     } catch (e: any) {

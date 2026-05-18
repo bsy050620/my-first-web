@@ -1,16 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function NewPostPage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
+
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/login');
+    }
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,34 +27,28 @@ export default function NewPostPage() {
       setError("제목을 입력해주세요.");
       return;
     }
-
     try {
-      // 현재 로그인한 사용자의 id를 가져옵니다
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData?.user) {
-        const msg = userError?.message ?? "로그인 정보가 없습니다.";
-        setError(msg);
-        console.error("getUser error", userError);
+      const user_id = user?.id;
+      if (!user_id) {
+        setError("로그인이 필요합니다.");
+        router.push('/login');
         return;
       }
 
-      const user_id = userData.user.id;
-
       // posts 테이블에 insert
-      const { data, error: insertError } = await supabase.from("posts").insert([{
-        title,
-        content,
-        user_id,
-      }]);
+      const { data, error: insertError } = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, content, user_id }),
+      }).then((r) => r.json());
 
       if (insertError) {
         setError(insertError.message);
-        console.error("insert error", insertError);
+        console.error('insert error', insertError);
         return;
       }
 
-      // 성공 시 이동
-      router.push("/posts");
+      router.push('/posts');
     } catch (err: any) {
       setError(err?.message ?? String(err));
       console.error(err);

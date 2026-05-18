@@ -2,36 +2,48 @@
 
 ## 현재 상태
 
-- 마지막 작업일: 2026-04-29
-- 완료된 작업: 홈 페이지, 헤더/푸터 레이아웃, 포스트 목록
-- 진행 중: 포스트 상세 페이지 (UI 완료, 데이터 연결 미완)
-- 미착수: 마이페이지
+- 마지막 작업일: 2026-05-18
+- 완료된 작업: 홈 페이지, 헤더/푸터 레이아웃, 포스트 목록, 이메일/비밀번호 인증 흐름, 서버 API(포스트 생성)
+- 진행 중: 포스트 상세 페이지 데이터 연결 검증 및 문서 정비
+- 미착수: 일부 고급 기능(이미지 업로드, 댓글, 마이페이지 고도화)
 
 ## 기술 결정 사항
 
-- 인증: Supabase Auth (Email)
-- 상태관리: React Context (AuthProvider)
-- 이미지: Supabase Storage 사용 예정
+- 인증: Supabase Auth (Email) — `@supabase/supabase-js` 2.47.12, `@supabase/ssr` 0.5.2 기준으로 구현
+- 상태관리: React Context (`contexts/AuthContext.tsx`) — `AuthProvider` / `useAuth`
+- 서버/클라이언트: Server-side는 `createServerClient`(cookies), 클라이언트는 `createBrowserClient` 사용
 
-## 해결된 이슈
+## 해결된 이슈(최근)
 
-- shadcn/ui Button variant가 디자인 토큰과 불일치 → globals.css의 --primary 수정으로 해결
-- 모바일 헤더 메뉴가 겹침 → Sheet 컴포넌트로 교체
+- Invalid Refresh Token / AuthSessionMissing 오류에 대응: `Header`와 `/posts/new`에서 `getUser()` 호출을 안전하게 처리하도록 수정
+- 인증 구조 중앙화: `lib/auth.ts`와 `contexts/AuthContext.tsx` 추가
+- 서버 API를 통해 포스트 삽입 처리 및 미들웨어로 보호 경로 적용 (`app/api/posts/route.ts`, `middleware.ts`)
+- 중복된 브라우저 클라이언트 파일(`lib/supabaseClient.ts`) 제거, `lib/supabase/client.ts`로 통합
 
-## 알게 된 점
+## 알게 된 점 / 주의 사항
 
-- Tailwind CSS 4 기준에서는 `@import "tailwindcss"` + `@theme` 블록으로 설정 (`tailwind.config.js` 불필요)
-- Server Component에서 useRouter 사용 불가 → redirect() 사용
+- Next.js 미들웨어는 동작하지만 deprecate 경고가 표시됩니다(권장: `proxy` 방식 고려).
+- 브라우저에 남아 있는 만료된 Supabase 토큰(로컬스토리지/쿠키)은 Auth 관련 오류를 유발할 수 있으니 테스트 전 제거 권장.
+- ch09a 교재 기준(코드 구조·설명)은 따랐으나, 실제 패키지 버전에 맞춰 API 사용을 조정했습니다.
 
 ---
 
-### 2026-04-29 — 오늘 작업 요약
+### 2026-05-18 — 오늘 작업 요약
 
-- 변경된 파일: [.github/copilot-instructions.md](.github/copilot-instructions.md#L1) — 프로젝트 개발 지침(Tech Stack, Coding Conventions, Design Tokens, Component Rules, Known AI Mistakes) 대폭 보강
-- 해결한 이슈: 코드 버그 직접 해결 없음 — 문서 정리로 개발 규칙·일관성 문제 완화
-- 새로 알게 된 점:
-	- Next.js 16.2.1 (App Router), React 19.2.4 사용
-	- Tailwind CSS 4와 shadcn/ui 조합으로 UI 구성 권장
-	- 기본은 Server Components, 클라이언트 기능 필요 시에만 `"use client"` 사용
-	- 내비게이션: `next/navigation` 사용(구식 `next/router` 사용 금지)
-	- 디자인 토큰(예: `--primary`, `--background`)을 우선 사용하고 Tailwind 기본 컬러 직접 사용 금지
+- 변경한 파일들(주요):
+	- `package.json` (Supabase 버전 고정)
+	- `lib/auth.ts` (signInWithEmail, signUpWithEmail, signOut)
+	- `contexts/AuthContext.tsx` (AuthProvider, useAuth)
+	- `lib/supabase/client.ts` (브라우저용 createBrowserClient)
+	- `app/api/posts/route.ts` (서버 API로 posts insert)
+	- `app/posts/new/page.tsx`, `app/login/LoginClient.tsx`, `app/signup/page.tsx`, `components/Header.tsx` (AuthProvider 사용으로 리팩터링)
+	- `middleware.ts` (서버 보호 라우트)
+	- `todo.md`, `context.md` (상태 업데이트)
+
+- 빌드: `npx next build` 성공, 개발 서버 실행 확인 (포트 충돌 시 포트 변경 발생 가능)
+
+### 미해결 / 다음 작업
+
+- 문서 정비: `.github/copilot-instructions.md`, `ARCHITECTURE.md` 등 ch09a 권장 문서 업데이트 필요
+- `middleware` deprecation 관련 조치(선택): `proxy` 방식으로 전환
+- 통합 테스트: 로그인/회원가입/글쓰기 시나리오를 브라우저로 검증

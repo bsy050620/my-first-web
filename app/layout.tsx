@@ -4,6 +4,7 @@ import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -20,11 +21,13 @@ export default function RootLayout({
   return (
     <html lang="ko" className={cn("font-sans", geist.variable)}>
       <body className="flex flex-col min-h-screen">
-        <Header />
+        <AuthProvider>
+          <Header />
 
-        <main className="max-w-4xl mx-auto p-6 flex-1">{children}</main>
+          <main className="max-w-4xl mx-auto p-6 flex-1">{children}</main>
 
-        <Footer />
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );

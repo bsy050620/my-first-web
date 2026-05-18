@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase/client";
 
@@ -11,36 +12,19 @@ export default function Header() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadUser() {
-      const { data } = await supabase.auth.getUser();
-      if (!mounted) return;
-      setUserEmail(data?.user?.email ?? null);
-    }
-
-    loadUser();
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserEmail(session?.user?.email ?? null);
-    });
-
-    return () => {
-      mounted = false;
-      listener.subscription.unsubscribe();
-    };
-  }, []);
+    const { user, loading, signOut } = useAuth();
+    useEffect(() => {
+      setUserEmail(user?.email ?? null);
+    }, [user]);
 
   async function handleSignOut() {
     setMessage(null);
-    const { error } = await supabase.auth.signOut();
+    const { error } = await signOut();
     if (error) {
       setMessage(error.message);
       return;
     }
     setUserEmail(null);
-    // 로그인 페이지로 이동하면서 로그아웃 메시지 표시를 위해 쿼리 파라미터 전달
     router.push("/login?logged_out=1");
   }
 
@@ -64,7 +48,7 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-3">
-          {userEmail ? (
+          {!loading && userEmail ? (
             <>
               <span className="text-sm text-muted-foreground">{userEmail}</span>
               <Button onClick={handleSignOut} variant="ghost">로그아웃</Button>
