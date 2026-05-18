@@ -43,6 +43,10 @@
 - Supabase 연결: 프로젝트는 `lib/supabase/client.ts`(브라우저용 `createBrowserClient`)와 서버 사이드용 서버 클라이언트를 Ch8 기준대로 사용합니다. 새로운 파일을 만들지 말고 해당 경로를 재사용하세요.
 - 인증: Ch9에서 도입한 `useAuth`/`AuthProvider`를 사용합니다. 전역 인증 컨텍스트를 우선 활용하고, 개별 컴포넌트에서 직접 Supabase 인증을 호출하지 마세요.
 - posts 스키마: 컬럼명/타입은 Ch8 스키마(ARCHITECTURE.md의 `posts` 섹션에 명시된 컬럼)와 동일하게 유지합니다. 마이그레이션 파일(`supabase/migrations/`)을 확인하세요.
+- 라우터: App Router(`app/`)만 사용합니다. `next/router` 사용은 금지입니다.
+- 수정/삭제 UI: UX 차원에서 UI를 구현하되, 실제 권한/데이터 보호는 Ch11의 RLS 단계에서 처리됩니다. 즉, UI에서 버튼을 숨기거나 확인 다이얼로그를 보여도 서버 검증을 별도로 준비하세요.
+
+-- 스키마 고정 주의: `profiles` 및 `posts`의 컬럼명은 Ch8 기준으로 고정됩니다. 절대 임의로 컬럼명을 변경하지 마세요 (`profiles.id`, `posts.user_id`, `posts.title`, `posts.content`, `posts.created_at`).
 - 라우터: App Router(`app/` 기반)만 사용합니다. `next/router` 사용은 금지입니다.
 - 수정/삭제 UI: UX 차원에서 UI를 구현하되, 실제 권한/데이터 보호는 Ch11의 RLS 단계에서 처리됩니다. 즉, UI에서 버튼을 숨기거나 확인 다이얼로그를 보여도 서버 검증을 별도로 준비하세요.
 

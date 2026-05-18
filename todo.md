@@ -71,3 +71,7 @@
 	- `supabase/migrations/`의 `posts` 스키마 컬럼명이 코드와 일치하는지 검증
 	- 라우터가 `app/` 기반으로만 작성되었는지(예: `next/router` 미사용) 확인
 
+	- 스키마 고정(중요): `profiles`와 `posts`의 컬럼명은 Ch8 기준으로 고정됩니다. 임의 변경 금지.
+		- `profiles.id`, `profiles.username`, `profiles.avatar_url`, `profiles.role`
+		- `posts.id`, `posts.user_id`, `posts.title`, `posts.content`, `posts.created_at`
+

@@ -113,59 +113,33 @@
 
 > 유의사항: 디자인 목표에 따라 과한 그림자/그라디언트 사용을 지양하고, 버튼 색상은 `globals.css`의 디자인 토큰(`--primary`, `--secondary`)을 통해 통일합니다.
 
-## 5. 데이터 모델 (Users / Posts)
+## 5. 데이터 모델 (Ch8 기준)
 
-설계 목표: 간단명료한 관계형 모델로 작성자-게시글 관계를 명확히 하고 검색과 인덱싱을 고려합니다. 아래는 기본 테이블 설계(상세 컬럼 타입은 DB에 맞춰 조정).
+설계 목표: Ch8 마이그레이션 기준으로 `profiles`와 `posts` 테이블의 컬럼명을 고정하여 일관된 DB 접근을 보장합니다. **컬럼명을 임의로 변경하지 마세요.**
 
-- `users` 테이블
-  - 목적: 사이트 사용자(작성자 및 일반 사용자)의 기본 정보 보관
-  - 주요 컬럼 (예)
-    - `id` (PK, UUID 또는 integer, auto-increment)
-    - `username` (유니크, 문자열)
-    - `email` (유니크, 문자열)
-    - `name` (표시명, 문자열)
-    - `bio` (짧은 소개, 텍스트, nullable)
-    - `avatar_url` (문자열, nullable)
-    - `role` (enum: `admin|author|user`, 기본 `user`)
-    - `created_at` (타임스탬프)
-    - `updated_at` (타임스탬프)
-
-  - 인덱스/제약
-    - `username`, `email`에 유니크 제약
+- `profiles` 테이블 (auth.users 확장)
+  - `id` UUID PRIMARY KEY REFERENCES auth.users(id)
+  - `username` TEXT
+  - `avatar_url` TEXT
+  - `role` TEXT
+  - `created_at` TIMESTAMPTZ DEFAULT now()
 
 - `posts` 테이블
-  - 목적: 게시글 본문과 메타데이터 보관
-  - 주요 컬럼 (예)
-    - `id` (PK, UUID 또는 integer)
-    - `author_id` (FK → `users.id`) — 작성자(필수)
-    - `title` (문자열)
-    - `slug` (유니크, URL용 문자열)
-    - `excerpt` (요약, 문자열/텍스트, nullable)
-    - `content` (본문, 마크다운 또는 HTML, 텍스트)
-    - `published` (boolean, 기본 false)
-    - `status` (enum: `draft|published|archived`, 기본 `draft`)
-    - `published_at` (타임스탬프, nullable)
-    - `created_at`, `updated_at` (타임스탬프)
+  - `id` UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  - `user_id` UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE
+  - `title` TEXT NOT NULL
+  - `content` TEXT NOT NULL
+  - `created_at` TIMESTAMPTZ DEFAULT now()
 
-  - 인덱스/제약
-    - `slug`에 유니크 인덱스 (퍼머링크 검색 최적화)
-    - `author_id`에 인덱스 (작성자별 조회 최적화)
-    - 전체 텍스트 검색이 필요하면 `title`/`content`에 대해 FTS 인덱스 구성 권장
+관계 및 확장
+- 관계: `profiles (1) — (N) posts`
+- 태그·이미지·코멘트 등 추가 데이터는 별도 테이블로 확장하되, 기존 컬럼명은 변경하지 마세요. 변경이 필요하면 반드시 마이그레이션 파일을 추가하고 문서에 기록하세요.
 
-- 관계 및 확장 테이블
-  - 관계: `users (1) — (N) posts` (한 사용자는 여러 포스트 작성)
-  - 태그 및 다대다
-    - `tags` 테이블: `id`, `name`, `slug`
-    - `post_tags` (조인 테이블): `post_id`, `tag_id` — 포스트-태그 다대다 관계
-  - 코멘트(선택)
-    - `comments` 테이블: `id`, `post_id`(FK), `author_id`(FK, nullable for anonymous), `content`, `created_at`, `status`
+운영 및 보안 고려사항
+- 인증은 Supabase Auth에서 관리하며, `profiles.id`는 `auth.users(id)`를 참조합니다.
+- 삭제 정책: 소프트 삭제(`deleted_at`)를 도입할 경우 기존 칼럼을 보존하고 확장 방식으로 처리하세요.
 
-- 운영 및 보안 고려사항
-  - 민감 정보(이메일, 비밀번호 해시)는 별도 인증/유저 서비스에서 관리(예: Supabase Auth). 이 문서의 `users`는 프로필·뷰어 정보 중심.
-  - 삭제 정책: 소프트 삭제(`deleted_at`)를 사용하여 복구 가능하게 유지 권장.
-  - 백업/마이그레이션 전략: 스키마 변경 시 마이그레이션 이용(예: Prisma Migrate, Flyway 등).
-
-> 참고: 위 모델은 기본 설계안입니다. 검색·분석·다국어·이미지 메타데이터 요구가 추가되면 별도 테이블(검색 인덱스, translations, media)을 도입합니다.
+> 참고: 이 섹션의 컬럼명은 Ch8 마이그레이션과 일치해야 하며, 코드에서 이 명칭을 사용하도록 유지합니다.
 ---
 ---
 

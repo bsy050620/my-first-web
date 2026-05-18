@@ -66,6 +66,27 @@
 	4. RLS 적용 전, UX 레벨의 수정/삭제 버튼 노출 정책을 문서화(Ch11에서 보안 처리)
 	5. `package.json` 버전과 교재 권장 버전 차이 여부 확인(현재 동일하게 명시되어 있음)
 
+	---
+
+	## Ch8 스키마(고정)
+
+	Ch10 작업에서는 아래 컬럼명을 절대 변경하지 마세요. 코드, 마이그레이션, API 응답은 이 명칭을 사용해야 합니다.
+
+	- `profiles`:
+		- `id` (uuid) — `auth.users(id)` 참조
+		- `username` (text)
+		- `avatar_url` (text)
+		- `role` (text)
+
+	- `posts`:
+		- `id` (uuid primary key)
+		- `user_id` (uuid references profiles(id))
+		- `title` (text)
+		- `content` (text)
+		- `created_at` (timestamptz)
+
+	필요한 확장은 마이그레이션 파일을 통해 명시적으로 추가하고, 기존 컬럼명은 절대 변경하지 마세요.
+
 ---
 
 ### Ch8/Ch9에서 반영한 항목 (참고)

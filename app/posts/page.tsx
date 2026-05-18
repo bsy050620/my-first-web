@@ -1,22 +1,14 @@
-import { posts as localPosts, type Post } from "@/lib/posts";
+import { type Post } from "@/lib/posts";
 import NewPostButton from "@/components/NewPostButton";
-import Link from "next/link";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import PostListItem from "@/components/PostListItem";
 
 export const dynamic = "force-dynamic";
 
 export default async function PostsPage() {
-  let initialPosts: Post[] = localPosts;
+  let initialPosts: Post[] = [];
+  let errorMessage = "";
 
   try {
     const cookieJar = await cookies();
@@ -32,22 +24,24 @@ export default async function PostsPage() {
     );
     const { data, error } = await supabase
       .from("posts")
-      .select("*")
+      .select("id,title,content,user_id,created_at")
       .order("created_at", { ascending: false });
 
     if (error) {
       console.error("Supabase select error:", error);
+      errorMessage = "게시글을 불러오는 중 오류가 발생했습니다.";
     } else if (data) {
       initialPosts = data.map((p: any) => ({
         id: p.id,
         title: p.title,
         content: p.content,
-        author: p.user_id ?? "",
-        date: p.created_at ? new Date(p.created_at).toISOString().slice(0, 10) : "",
+        user_id: p.user_id ?? "",
+        created_at: p.created_at ?? "",
       }));
     }
   } catch (e) {
     console.error("Failed to fetch posts:", e);
+    errorMessage = "서버 오류가 발생했습니다.";
   }
 
   return (
@@ -57,33 +51,25 @@ export default async function PostsPage() {
         <NewPostButton />
       </div>
 
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {initialPosts.map((post) => (
-          <article key={post.id}>
-            <Card className="p-0">
-              <CardHeader>
-                <CardTitle className="px-4 py-4">{post.title}</CardTitle>
-                <CardDescription className="px-4 pb-2">{post.author} · {post.date}</CardDescription>
-              </CardHeader>
+      {errorMessage && (
+        <div className="mb-6 p-4 rounded bg-red-50 text-red-600 text-sm">
+          {errorMessage}
+        </div>
+      )}
 
-              <CardContent>
-                <div className="px-4 pb-4 text-sm text-muted-foreground line-clamp-3">
-                  {post.content}
-                </div>
-              </CardContent>
+      {initialPosts.length === 0 && !errorMessage && (
+        <div className="text-center py-12 text-muted-foreground">
+          게시글이 없습니다.
+        </div>
+      )}
 
-              <CardFooter>
-                <div className="px-4 w-full flex items-center justify-between">
-                  <Link href={`/posts/${post.id}`}>
-                    <Button variant="ghost">상세</Button>
-                  </Link>
-                  <span className="text-xs text-muted-foreground">{post.author}</span>
-                </div>
-              </CardFooter>
-            </Card>
-          </article>
-        ))}
-      </section>
+      {initialPosts.length > 0 && (
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {initialPosts.map((post) => (
+            <PostListItem key={post.id} post={post} />
+          ))}
+        </section>
+      )}
     </div>
   );
 }

@@ -6,6 +6,9 @@
 - Supabase: 클라이언트 코드에서는 `lib/supabase/client.ts`를 재사용하세요. 새로운 클라이언트 파일을 생성하지 말고 기존 경로를 이용합니다.
 - 인증: 전역 인증은 `contexts/AuthContext.tsx`(`AuthProvider`, `useAuth`)를 사용합니다. 컴포넌트 단위로 중복 인증 로직을 만들지 마세요.
 - DB 스키마: posts 테이블 컬럼은 Ch8 마이그레이션을 기준으로 합니다. 변경이 필요하면 마이그레이션 파일을 함께 수정하고 문서화하세요.
+- 스키마 고정: `profiles`와 `posts`의 기본 컬럼명은 Ch8 기준으로 고정되어야 합니다. 에이전트는 다음 컬럼명을 변경하거나 대체하면 안 됩니다:
+	- `profiles.id`, `profiles.username`, `profiles.avatar_url`, `profiles.role`
+	- `posts.id`, `posts.user_id`, `posts.title`, `posts.content`, `posts.created_at`
 - 패키지/버전: 실제 `package.json`이 교재보다 최신이면 삭제하지 않습니다. 문서에 `교재 기준`과 `현재 설치`를 함께 표기하세요.
 - 보안: 수정/삭제 UI는 UX 차원에서 구현하되, 권한 검증·보호는 Ch11 RLS 단계에서 처리됩니다. 에이전트는 클라이언트 측 UI만 수정할 경우 보안 우회가 되지 않도록 경고를 남겨야 합니다.
 
