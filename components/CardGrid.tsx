@@ -14,7 +14,7 @@ export default function CardGrid() {
         >
           <h3 className="text-lg font-semibold text-card-foreground mb-2">{p.title}</h3>
           <p className="text-sm text-muted-foreground mb-4">{p.content.slice(0, 100)}...</p>
-          <div className="text-xs text-muted-foreground">{p.author} · {p.date}</div>
+          <div className="text-xs text-muted-foreground">{p.user_id} · {new Date(p.created_at || "").toISOString().slice(0, 10)}</div>
         </Link>
       ))}
     </section>

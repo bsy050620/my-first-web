@@ -30,7 +30,7 @@ type Props = {
 export default function SearchBar({ posts }: Props) {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<Post[]>(posts);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<string | number | null>(null);
   const [open, setOpen] = useState(false);
 
   const filtered = useMemo(() => {
@@ -44,7 +44,7 @@ export default function SearchBar({ posts }: Props) {
     );
   }, [query, items]);
 
-  function handleDelete(id: number) {
+  function handleDelete(id: string | number) {
     setSelectedId(id);
     setOpen(true);
   }
