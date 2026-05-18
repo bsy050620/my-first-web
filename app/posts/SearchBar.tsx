@@ -40,7 +40,7 @@ export default function SearchBar({ posts }: Props) {
       (p) =>
         p.title.toLowerCase().includes(q) ||
         p.content.toLowerCase().includes(q) ||
-        p.author.toLowerCase().includes(q)
+        (p.user_id?.toLowerCase().includes(q) ?? false)
     );
   }, [query, items]);
 
