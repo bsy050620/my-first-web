@@ -71,7 +71,7 @@ export default function SearchBar({ posts }: Props) {
             <CardHeader>
               <CardTitle>{post.title}</CardTitle>
               <CardDescription>
-                {post.author} · {post.date}
+                {post.user_id} · {new Date(post.created_at || "").toISOString().slice(0, 10)}
               </CardDescription>
             </CardHeader>
 
