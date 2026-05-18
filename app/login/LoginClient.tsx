@@ -34,7 +34,7 @@ export default function LoginClient() {
       if (authError) {
         setError(authError.message);
       } else {
-        router.push("/");
+        router.push("/posts");
       }
     } catch (e: any) {
       setError(e?.message ?? "Unknown error");
