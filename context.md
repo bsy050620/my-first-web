@@ -47,3 +47,29 @@
 - 문서 정비: `.github/copilot-instructions.md`, `ARCHITECTURE.md` 등 ch09a 권장 문서 업데이트 필요
 - `middleware` deprecation 관련 조치(선택): `proxy` 방식으로 전환
 - 통합 테스트: 로그인/회원가입/글쓰기 시나리오를 브라우저로 검증
+
+---
+
+## Ch10 준비 상태 및 요구사항 정리
+
+- 기준 요약:
+	- Ch7·Ch8 교재 기준 패키지를 따릅니다.
+	- Supabase 연결은 `lib/supabase/client.ts`를 사용합니다.
+	- 인증은 Ch9의 `useAuth`/`AuthProvider`를 재사용합니다.
+	- posts 컬럼명/스키마는 Ch8 마이그레이션을 따릅니다(확인: `supabase/migrations/`).
+	- App Router만 사용하며 `next/router` 사용 금지입니다.
+
+- 현재 상태(Ch10 시작 전 해야 할 일):
+	1. `posts` CRUD에 필요한 페이지/서버 엔드포인트 정리 및 미비점 확인
+	2. `PostForm`(작성/수정) UI와 서버 API(생성/수정/삭제)를 Ch8 스키마에 맞춰 구현
+	3. 인증 흐름(`AuthProvider`)에서 사용자 ID를 일관되게 전달하는지 확인
+	4. RLS 적용 전, UX 레벨의 수정/삭제 버튼 노출 정책을 문서화(Ch11에서 보안 처리)
+	5. `package.json` 버전과 교재 권장 버전 차이 여부 확인(현재 동일하게 명시되어 있음)
+
+---
+
+### Ch8/Ch9에서 반영한 항목 (참고)
+- `lib/supabase/client.ts` 통합 사용 완료
+- `contexts/AuthContext.tsx`(`AuthProvider`, `useAuth`) 추가 및 페이지 리팩터링 적용
+
+문서를 기준으로 Ch10 작업을 시작할 수 있도록 위 항목들을 우선 검토하세요.

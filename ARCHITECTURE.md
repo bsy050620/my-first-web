@@ -33,6 +33,17 @@
   - `/posts/[id]/edit` — 포스트 편집
   - `/me/settings` — 프로필 설정
 
+## Ch10 기준 추가 (요약)
+
+- 패키지/버전: Ch7·Ch8 교재 기준 패키지를 우선합니다. 실제 `package.json`의 버전이 교재와 다르면 문서에 `교재 기준`과 `현재 설치`를 모두 표기합니다.
+- Supabase 연결: 클라이언트는 `lib/supabase/client.ts`를 사용합니다. 서버 측에는 Ch8 방식의 서버 클라이언트/마이그레이션을 재사용합니다.
+- 인증: Ch9에서 구현한 `useAuth`/`AuthProvider`를 재사용하여 사용자 컨텍스트와 인증 상태를 전역으로 관리합니다.
+- posts 테이블 컬럼: Ch8 마이그레이션과 동일한 컬럼명을 사용합니다(예: `id`, `author_id`, `title`, `slug`, `excerpt`, `content`, `status`, `published_at`, `created_at`, `updated_at`).
+- 라우터: App Router(`app/`)만 사용합니다. `next/router` 사용은 금지합니다.
+- 수정/삭제 UI는 UX 수준에서 구현하지만, 실제 권한 검증과 데이터 보호는 Ch11에서 RLS로 처리됩니다.
+
+위 규칙을 ARCHITECTURE 레퍼런스로 삼아 Ch10의 posts CRUD 개발을 진행하세요.
+
 - 운영/관리(선택)
   - `/admin` — 운영 대시보드(선택적)
 
