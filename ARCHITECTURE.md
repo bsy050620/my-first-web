@@ -22,9 +22,9 @@
   - `app/not-found` — 404
 
 - 인증 관련
-  - `/auth/login` — 로그인 (Supabase Auth 연동)
-  - `/auth/register` — 회원가입
-  - `/auth/reset` — 비밀번호 재설정
+  - `/login` — 로그인 (Supabase Auth 연동)
+  - `/signup` — 회원가입
+  - `/auth/reset` — 비밀번호 재설정 (미구현)
 
 - 작성자 전용(인증 필요)
   - `/me` — 마이 페이지 (요약)
@@ -33,16 +33,36 @@
   - `/posts/[id]/edit` — 포스트 편집
   - `/me/settings` — 프로필 설정
 
-## Ch10 기준 추가 (요약)
+## Ch10/Ch11 기준 추가 (요약)
 
-- 패키지/버전: Ch7·Ch8 교재 기준 패키지를 우선합니다. 실제 `package.json`의 버전이 교재와 다르면 문서에 `교재 기준`과 `현재 설치`를 모두 표기합니다.
-- Supabase 연결: 클라이언트는 `lib/supabase/client.ts`를 사용합니다. 서버 측에는 Ch8 방식의 서버 클라이언트/마이그레이션을 재사용합니다.
-- 인증: Ch9에서 구현한 `useAuth`/`AuthProvider`를 재사용하여 사용자 컨텍스트와 인증 상태를 전역으로 관리합니다.
-- posts 테이블 컬럼: Ch8 마이그레이션과 동일한 컬럼명을 사용합니다(예: `id`, `author_id`, `title`, `slug`, `excerpt`, `content`, `status`, `published_at`, `created_at`, `updated_at`).
-- 라우터: App Router(`app/`)만 사용합니다. `next/router` 사용은 금지합니다.
-- 수정/삭제 UI는 UX 수준에서 구현하지만, 실제 권한 검증과 데이터 보호는 Ch11에서 RLS로 처리됩니다.
+### 패키지/버전
+- 교재 기준: `next` 16.2.1, `react` 19.2.4, `@supabase/supabase-js` 2.47.12, `@supabase/ssr` 0.5.2, `tailwindcss` v4
+- 현재 설치: `package.json`과 교재 기준이 동일하게 명시되어 있습니다.
 
-위 규칙을 ARCHITECTURE 레퍼런스로 삼아 Ch10의 posts CRUD 개발을 진행하세요.
+### Supabase 연결
+- 클라이언트: `lib/supabase/client.ts` (`createBrowserClient`) 사용
+- 서버: Ch8 방식의 서버 클라이언트/마이그레이션 재사용
+
+### 인증 & 상태관리
+- Ch9 `useAuth`/`AuthProvider` (`contexts/AuthContext.tsx`) 재사용
+- 전역 인증 컨텍스트 우선 활용, 개별 컴포넌트에서 직접 Supabase 인증 호출 금지
+
+### 라우터
+- App Router(`app/`) 기반 **필수**, `next/router` 사용 금지
+
+### 스키마 고정
+- `profiles`: `id`, `username`, `avatar_url`, `role`, `created_at` — 변경 금지
+- `posts`: `id`, `user_id`, `title`, `content`, `created_at` — 변경 금지
+
+### Ch10 (Posts CRUD)
+- 포스트 작성/수정/삭제 UI와 서버 API 구현
+- 수정/삭제 버튼은 UX 수준에서만 노출(보안은 Ch11에서 처리)
+
+### Ch11 (RLS) — **현재 준비 단계**
+- RLS 정책은 Supabase CLI 마이그레이션으로 남김
+- `posts` 테이블에 대해 `user_id`와 `auth.uid()` 기준의 정책 생성
+- 클라이언트 UI 분기(버튼 숨김 등)는 보안이 아니며, 실제 보안은 RLS가 담당
+- `service_role` 키는 클라이언트에서 절대 사용 금지
 
 - 운영/관리(선택)
   - `/admin` — 운영 대시보드(선택적)
@@ -124,16 +144,21 @@
   - `role` TEXT
   - `created_at` TIMESTAMPTZ DEFAULT now()
 
-- `posts` 테이블
+- `posts` 테이블 (Ch8 고정 스키마)
   - `id` UUID PRIMARY KEY DEFAULT gen_random_uuid()
   - `user_id` UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE
   - `title` TEXT NOT NULL
   - `content` TEXT NOT NULL
   - `created_at` TIMESTAMPTZ DEFAULT now()
+  
+  **주의**: 위 컬럼명은 Ch8 기준으로 고정되며, 코드·마이그레이션·API 응답에서 이 명칭을 반드시 사용해야 합니다. `slug`, `excerpt`, `status`, `published_at`, `updated_at` 등의 컬럼은 현재 존재하지 않습니다.
 
 관계 및 확장
 - 관계: `profiles (1) — (N) posts`
-- 태그·이미지·코멘트 등 추가 데이터는 별도 테이블로 확장하되, 기존 컬럼명은 변경하지 마세요. 변경이 필요하면 반드시 마이그레이션 파일을 추가하고 문서에 기록하세요.
+- 확장 원칙:
+  - 태그·이미지·댓글 등은 별도 테이블로 확장
+  - 기존 컬럼명(`profiles.id`, `posts.id`, `posts.user_id`, `posts.title`, `posts.content`, `posts.created_at`)은 **절대 변경 금지**
+  - 새 컬럼 추가는 마이그레이션 파일로만 처리하고 문서에 기록
 
 운영 및 보안 고려사항
 - 인증은 Supabase Auth에서 관리하며, `profiles.id`는 `auth.users(id)`를 참조합니다.

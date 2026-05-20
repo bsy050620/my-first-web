@@ -50,47 +50,78 @@
 
 ---
 
-## Ch10 준비 상태 및 요구사항 정리
+## Ch10/Ch11 기준 정리
 
-- 기준 요약:
-	- Ch7·Ch8 교재 기준 패키지를 따릅니다.
-	- Supabase 연결은 `lib/supabase/client.ts`를 사용합니다.
-	- 인증은 Ch9의 `useAuth`/`AuthProvider`를 재사용합니다.
-	- posts 컬럼명/스키마는 Ch8 마이그레이션을 따릅니다(확인: `supabase/migrations/`).
-	- App Router만 사용하며 `next/router` 사용 금지입니다.
+### 기술 기준
+- **패키지 버전**:
+  - 교재 기준: `next` 16.2.1, `react` 19.2.4, `@supabase/supabase-js` 2.47.12, `@supabase/ssr` 0.5.2, `tailwindcss` v4
+  - 현재 설치: 동일 버전으로 명시됨 (충돌 없음)
+- **Supabase 클라이언트**: `lib/supabase/client.ts` (브라우저) + 서버 클라이언트 (Ch8 방식)
+- **인증**: `contexts/AuthContext.tsx` (`AuthProvider`, `useAuth`)
+- **라우터**: App Router (`app/` 기반) — `next/router` 금지
+- **스키마**: Ch8 마이그레이션 기준(컬럼명 변경 금지)
 
-- 현재 상태(Ch10 시작 전 해야 할 일):
-	1. `posts` CRUD에 필요한 페이지/서버 엔드포인트 정리 및 미비점 확인
-	2. `PostForm`(작성/수정) UI와 서버 API(생성/수정/삭제)를 Ch8 스키마에 맞춰 구현
-	3. 인증 흐름(`AuthProvider`)에서 사용자 ID를 일관되게 전달하는지 확인
-	4. RLS 적용 전, UX 레벨의 수정/삭제 버튼 노출 정책을 문서화(Ch11에서 보안 처리)
-	5. `package.json` 버전과 교재 권장 버전 차이 여부 확인(현재 동일하게 명시되어 있음)
+### 스키마 고정 (절대 변경 금지)
 
-	---
+**`profiles` (auth.users 확장)**
+- `id` (uuid) PRIMARY KEY REFERENCES auth.users(id)
+- `username` (text)
+- `avatar_url` (text)
+- `role` (text)
+- `created_at` (timestamptz)
 
-	## Ch8 스키마(고정)
+**`posts` (블로그 콘텐츠)**
+- `id` (uuid) PRIMARY KEY DEFAULT gen_random_uuid()
+- `user_id` (uuid) NOT NULL REFERENCES profiles(id) ON DELETE CASCADE
+- `title` (text) NOT NULL
+- `content` (text) NOT NULL
+- `created_at` (timestamptz) DEFAULT now()
 
-	Ch10 작업에서는 아래 컬럼명을 절대 변경하지 마세요. 코드, 마이그레이션, API 응답은 이 명칭을 사용해야 합니다.
+> 확장이 필요한 경우, 마이그레이션 파일로만 처리하고 문서에 기록하세요.
 
-	- `profiles`:
-		- `id` (uuid) — `auth.users(id)` 참조
-		- `username` (text)
-		- `avatar_url` (text)
-		- `role` (text)
+### Ch11 준비 사항 (RLS)
 
-	- `posts`:
-		- `id` (uuid primary key)
-		- `user_id` (uuid references profiles(id))
-		- `title` (text)
-		- `content` (text)
-		- `created_at` (timestamptz)
+**현재 상태**:
+- ✅ 기본 인증/인가 구조 완성 (Ch9)
+- ✅ 포스트 생성 API 구현 (`app/api/posts/route.ts`)
+- ✅ 미들웨어로 보호 라우트 적용 (`middleware.ts`)
+- ⏳ **RLS 정책 미적용** — 다음 단계
 
-	필요한 확장은 마이그레이션 파일을 통해 명시적으로 추가하고, 기존 컬럼명은 절대 변경하지 마세요.
+**RLS 적용 원칙**:
+1. RLS 정책은 **Supabase CLI 마이그레이션** (`supabase/migrations/`) 파일로 남김 (SQL Editor X)
+2. `posts` 테이블: `user_id` = `auth.uid()` 기준으로 정책 생성
+3. **클라이언트 UI 분기는 보안이 아님** — 버튼 숨김/다이얼로그는 UX일 뿐, 실제 보안은 RLS가 담당
+4. `service_role` 키는 **클라이언트에서 절대 사용하지 않음**
+
+### Ch11에서 구현할 RLS 정책(요약)
+
+| 테이블 | 대상 사용자 | 작업 | 조건 |
+|--------|-----------|------|------|
+| `posts` | 인증된 사용자 | SELECT | 모든 공개 포스트 조회 가능 |
+| `posts` | 포스트 작성자 | UPDATE/DELETE | `user_id` = `auth.uid()` |
+| `posts` | 작성자 외 | UPDATE/DELETE | 거부 |
 
 ---
 
-### Ch8/Ch9에서 반영한 항목 (참고)
-- `lib/supabase/client.ts` 통합 사용 완료
-- `contexts/AuthContext.tsx`(`AuthProvider`, `useAuth`) 추가 및 페이지 리팩터링 적용
+### 다음 작업 순서
 
-문서를 기준으로 Ch10 작업을 시작할 수 있도록 위 항목들을 우선 검토하세요.
+1. **포스트 CRUD 완성** (Ch10):
+   - 포스트 조회/수정/삭제 API 구현
+   - UI 분기: 작성자 전용 버튼(수정/삭제) 노출 (보안 X)
+
+2. **RLS 정책 추가** (Ch11):
+   - 마이그레이션 파일 작성 (SQL)
+   - Supabase CLI로 적용 및 테스트
+   - 서버 API에서 RLS 정책 검증(선택)
+
+3. **통합 테스트**:
+   - 로그인한 사용자: 자신의 포스트 수정/삭제 가능
+   - 다른 사용자: 수정/삭제 불가 (RLS 차단)
+
+---
+
+### 참고: Ch8/Ch9 적용 완료 항목
+- ✅ `lib/supabase/client.ts` 통합 사용
+- ✅ `contexts/AuthContext.tsx` (`AuthProvider`, `useAuth`) 적용
+- ✅ 기본 인증 흐름 (이메일/비밀번호)
+- ✅ 서버 API로 포스트 생성 및 보호 라우트

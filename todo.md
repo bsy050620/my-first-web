@@ -14,29 +14,45 @@
 - [x] 포스트 목록 구현
 - [x] 포스트 상세 페이지 UI 구현 — 데이터 연결 일부 완료
 
-## 핵심 기능
+## 핵심 기능 (Ch9 완료, Ch10/Ch11 진행중)
 
 - [x] 인증: Supabase Auth (Email) — 기본 이메일/비밀번호 흐름 구현
 - [x] `AuthProvider` / React Context 구현 (`contexts/AuthContext.tsx`)
 - [x] 로그인/회원가입 페이지 리팩터링 (중앙 `lib/auth.ts` 사용)
 - [x] 서버 API로 포스트 생성 구현 (`app/api/posts/route.ts`)
 - [x] 보호 라우트: `middleware.ts`로 `/posts/new` 및 `/api/posts` 보호 추가
-- [ ] 포스트 에디터(작성/수정) — 마크다운 지원
- - [x] 서버 API로 포스트 생성 구현 (`app/api/posts/route.ts`)
- - [x] 보호 라우트: `middleware.ts`로 `/posts/new` 및 `/api/posts` 보호 추가
- - [ ] 포스트 에디터(작성/수정) — 마크다운 지원
- - [ ] 포스트 CRUD: `app/posts/new`, `app/posts/[id]`, `app/posts/[id]/edit` 페이지와 서버 API(생성/조회/수정/삭제) 완성 — Ch8 스키마 기준
- - [ ] 수정/삭제 UI: 작성자 전용 버튼 및 확인 다이얼로그 구현(보안은 Ch11 RLS 예정)
- - [ ] 이미지 업로드 (Supabase Storage 연동)
+
+### Ch10 — Posts CRUD & UX
+
+- [ ] 포스트 조회 API (`app/api/posts/[id]/route.ts`) — GET
+- [ ] 포스트 수정 API (`app/api/posts/[id]/route.ts`) — PUT
+- [ ] 포스트 삭제 API (`app/api/posts/[id]/route.ts`) — DELETE
+- [ ] 포스트 상세 페이지 데이터 연결 (`app/posts/[id]/page.tsx`)
+- [ ] 포스트 수정 페이지 (`app/posts/[id]/edit/page.tsx`)
+- [ ] 포스트 에디터(작성/수정) UI — 마크다운 지원 (선택)
+- [ ] 수정/삭제 UI: 작성자 전용 버튼 및 확인 다이얼로그 구현 (보안은 Ch11 RLS 예정)
+- [ ] 포스트 목록에서 필터링/검색 기능 개선
+
+### Ch11 — RLS (행 수준 보안) & 데이터 보호
+
+- [ ] **RLS 마이그레이션 파일 작성** (`supabase/migrations/`)
+  - [ ] `posts` 테이블 SELECT 정책: 모든 사용자 공개 조회 가능
+  - [ ] `posts` 테이블 INSERT 정책: 인증된 사용자만 삽입 가능
+  - [ ] `posts` 테이블 UPDATE 정책: 작성자(`user_id` = `auth.uid()`)만 수정 가능
+  - [ ] `posts` 테이블 DELETE 정책: 작성자만 삭제 가능
+- [ ] **RLS 정책 테스트** — Supabase Dashboard 또는 CLI로 검증
+- [ ] **서버 API 검증** (선택): 정책 위반 시 서버 측 추가 검증 (예: 사용자 ID 확인)
+- [ ] **문서화**: RLS 정책 명세 및 적용 프로세스 기록
+
+---
+
+## 고급 기능
+
 - [ ] 이미지 업로드 (Supabase Storage 연동)
 - [ ] 댓글 시스템
 - [ ] 태그 및 필터링
 - [ ] 검색 기능 (SearchBar 연동)
 - [ ] 페이징 / 무한 스크롤
-- [ ] 포스트 상세 페이지 데이터 연결(완료 검증 필요)
-
-## 고급 기능
-
 - [ ] 마이 페이지 / 프로필 (기본 뼈대 존재)
 - [ ] 알림(이메일 / 웹 푸시)
 - [ ] SEO / 메타데이터 최적화
