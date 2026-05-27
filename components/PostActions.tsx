@@ -36,13 +36,30 @@ export default function PostActions({ postId, postUserId }: Props) {
     try {
       const res = await fetch(`/api/posts/${postId}`, { method: "DELETE" });
       if (!res.ok) {
-        const err = await res.json().catch(() => null);
-        throw new Error(err?.error?.message ?? err?.error ?? "삭제 실패");
+        console.error(
+          "[PostActions DELETE] API error:",
+          res.status,
+          res.statusText
+        );
+        const responseText = await res.text();
+        let err;
+        try {
+          err = JSON.parse(responseText);
+        } catch {
+          console.error(
+            "[PostActions] JSON parse error. Response:",
+            responseText.substring(0, 200)
+          );
+          throw new Error("서버 응답 형식이 올바르지 않습니다");
+        }
+        const errorMsg = err?.error?.message ?? err?.error ?? "게시글 삭제에 실패했습니다";
+        throw new Error(errorMsg);
       }
       router.push("/posts");
     } catch (err: any) {
-      setError(err?.message ?? String(err));
-      console.error(err);
+      const errorMessage = err?.message ?? String(err);
+      setError(errorMessage);
+      console.error("[PostActions Delete Error]", errorMessage, err);
     } finally {
       setDeleting(false);
     }
@@ -70,13 +87,29 @@ export default function PostActions({ postId, postUserId }: Props) {
             <DialogTitle>게시글 삭제</DialogTitle>
             <DialogDescription>게시글을 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</DialogDescription>
           </DialogHeader>
-          {error && <p className="text-red-600 text-sm">{error}</p>}
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)} disabled={deleting}>
               취소
             </Button>
-            <Button variant="destructive" onClick={confirmDelete} disabled={deleting}>
-              {deleting ? "삭제 중..." : "삭제"}
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleting}
+              className="min-w-[100px]"
+            >
+              {deleting ? (
+                <span className="flex items-center gap-2">
+                  <span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  삭제 중...
+                </span>
+              ) : (
+                "삭제"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

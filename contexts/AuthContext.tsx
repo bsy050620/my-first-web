@@ -27,14 +27,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const { data, error } = await supabase.auth.getUser();
         if (!mounted) return;
+        
         if (error) {
-          console.warn("Auth init warning", error.message ?? error);
+          // "Failed to fetch" 에러 감지
+          if (error.message?.includes("Failed to fetch")) {
+            console.warn(
+              "[AuthContext] Supabase connection failed.",
+              "해결 방법:",
+              "1. npm run dev로 개발 서버 재시작",
+              "2. 브라우저 새로고침 (Ctrl+F5)",
+              "3. .env.local 파일 확인"
+            );
+          } else {
+            console.warn("[AuthContext] Auth init warning:", error.message ?? error);
+          }
           setUser(null);
         } else {
           setUser(data?.user ?? null);
         }
-      } catch (err) {
-        console.error("Auth init error", err);
+      } catch (err: any) {
+        console.error("[AuthContext] Auth init error:", err?.message);
         setUser(null);
       } finally {
         if (mounted) setLoading(false);

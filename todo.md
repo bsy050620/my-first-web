@@ -1,6 +1,6 @@
 # 프로젝트 TODO (블로그 기준)
 
-**진행률:** 64% (16/25 완료, 0 진행 중)
+**진행률:** 68% (17/25 완료, 0 진행 중)
 
 ---
 
@@ -13,6 +13,25 @@
 - [x] 홈 페이지 구현
 - [x] 포스트 목록 구현
 - [x] 포스트 상세 페이지 UI 구현 — 데이터 연결 일부 완료
+
+## Ch12 — 에러 처리 & UX 개선
+
+- [x] 에러 메시지 변환 유틸 함수 (`lib/error-message.ts`)
+  - [x] Supabase RLS 에러 (42501) 처리
+  - [x] 네트워크 에러 (Failed to fetch) 처리
+  - [x] Not Found 에러 처리
+  - [x] 기본 폴백 메시지
+- [x] 로그인 페이지 에러 처리 개선 (`app/login/LoginClient.tsx`)
+- [x] 회원가입 페이지 에러 처리 개선 (`app/signup/page.tsx`)
+- [ ] 화면별 loading/error/empty 상태 구현
+  - [ ] `app/posts/loading.tsx`
+  - [ ] `app/posts/error.tsx`
+  - [ ] `app/posts/[id]/loading.tsx`
+  - [ ] `app/posts/[id]/error.tsx`
+  - [ ] `app/mypage/loading.tsx`
+  - [ ] `app/mypage/error.tsx`
+- [ ] 포스트 목록 empty state 구현
+- [ ] 포스트 상세 404 페이지
 
 ## 핵심 기능 (Ch9 완료, Ch10/Ch11 진행중)
 

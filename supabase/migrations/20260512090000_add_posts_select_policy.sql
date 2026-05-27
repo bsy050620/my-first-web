@@ -17,3 +17,4 @@ DROP POLICY IF EXISTS "Allow authenticated inserts on posts" ON public.posts;
 DROP POLICY IF EXISTS "Allow owners modify posts" ON public.posts;
 DROP POLICY IF EXISTS "Allow owners update posts" ON public.posts;
 DROP POLICY IF EXISTS "Allow owners delete posts" ON public.posts;
+DROP POLICY IF EXISTS "Users can insert own posts" ON public.posts;

@@ -1,5 +1,6 @@
 import React from "react";
 import PostForm from "@/components/PostForm";
+import ErrorState from "@/components/ErrorState";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import Link from "next/link";
@@ -30,12 +31,18 @@ export default async function EditPage({ params }: Props) {
     .single();
 
   if (error || !data) {
+    console.error("Failed to fetch post for edit:", error);
     return (
       <div className="max-w-3xl mx-auto py-12 px-4">
-        <h1 className="text-2xl font-bold mb-4">게시글을 불러오는 중 오류가 발생했습니다.</h1>
-        <Link href="/posts" className="text-blue-600 hover:underline">
-          목록으로 돌아가기
-        </Link>
+        <ErrorState
+          title="게시글을 불러올 수 없습니다"
+          message="요청하신 게시글이 존재하지 않거나 접근 권한이 없습니다."
+          action={
+            <Link href="/posts" className="inline-block text-blue-600 hover:underline text-sm font-medium">
+              목록으로 돌아가기
+            </Link>
+          }
+        />
       </div>
     );
   }

@@ -33,6 +33,39 @@
   - `/posts/[id]/edit` — 포스트 편집
   - `/me/settings` — 프로필 설정
 
+## Ch10 — Posts CRUD & UX
+
+상태: ⏳ 진행중 (에러 처리 개선 완료, 화면별 상태 구현 예정)
+
+**완료됨**:
+- ✅ 포스트 생성 API (`app/api/posts/route.ts`)
+- ✅ 에러 메시지 변환 (`lib/error-message.ts`)
+- ✅ 로그인/회원가입 페이지 에러 처리 개선
+
+**진행중**:
+- ⏳ 화면별 loading/error/empty 상태 (error.tsx, loading.tsx)
+
+**미착수**:
+- [ ] 포스트 조회 API (`app/api/posts/[id]/route.ts`) — GET
+- [ ] 포스트 수정 API (`app/api/posts/[id]/route.ts`) — PUT
+- [ ] 포스트 삭제 API (`app/api/posts/[id]/route.ts`) — DELETE
+- [ ] 포스트 상세 페이지 완전 구현
+- [ ] 포스트 수정 페이지
+- [ ] 포스트 검색 기능
+
+---
+
+## Ch11 — RLS (행 수준 보안)
+
+상태: ⏳ 준비 단계
+
+**계획**:
+- RLS 정책은 Supabase CLI 마이그레이션 (`supabase/migrations/`) 파일로 적용
+- `posts` 테이블: SELECT(전체), INSERT(인증된 사용자), UPDATE/DELETE(작성자만)
+- 클라이언트 UI 분기는 보안이 아니며, 실제 보호는 RLS 정책이 담당
+
+---
+
 ## Ch10/Ch11 기준 추가 (요약)
 
 ### 패키지/버전
@@ -63,6 +96,32 @@
 - `posts` 테이블에 대해 `user_id`와 `auth.uid()` 기준의 정책 생성
 - 클라이언트 UI 분기(버튼 숨김 등)는 보안이 아니며, 실제 보안은 RLS가 담당
 - `service_role` 키는 클라이언트에서 절대 사용 금지
+
+### Ch12 (에러 처리 & UX 개선) — **진행중**
+
+**완료됨**:
+- ✅ 에러 메시지 변환 유틸 함수 (`lib/error-message.ts`)
+  - Supabase RLS 에러 (42501) 처리
+  - 네트워크 에러 (Failed to fetch) 처리
+  - Not Found 에러 처리
+  - 기본 폴백 메시지
+- ✅ 로그인/회원가입 페이지 에러 처리 개선
+- ✅ 폼 검증 규칙 적용
+
+**진행중**:
+- ⏳ 화면별 loading/error/empty 상태 구현 (error.tsx, loading.tsx)
+
+**에러 메시지 변환 규칙** (`lib/error-message.ts`):
+| 에러 타입 | 감지 조건 | 사용자 메시지 |
+|---------|---------|------------|
+| 권한 거부 | 42501 또는 "row-level security" | "이 작업을 수행할 권한이 없습니다." |
+| 네트워크 오류 | "Failed to fetch" | "인터넷 연결을 확인해주세요." |
+| 리소스 없음 | "not found", "no rows", 404 | "요청한 게시글을 찾을 수 없습니다." |
+| 기타 오류 | 기본값 | "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요." |
+
+**폼 검증 규칙**:
+- 로그인: 이메일(필수, 유효 형식), 비밀번호(필수)
+- 회원가입: 이메일(필수, 유효 형식), 비밀번호(필수, 6자↑), 비밀번호 확인(필수, 일치 확인)
 
 - 운영/관리(선택)
   - `/admin` — 운영 대시보드(선택적)
@@ -281,6 +340,117 @@
 - 내비게이션: `next/navigation` API 사용
 - 디자인 토큰: `globals.css`에 CSS 변수 정의(`--primary`, `--background` 등)
 - 우선 구현 권장 순서: 포스트 상세 데이터 연결 → 인증 → 에디터 → 이미지 업로드 → 검색/필터
+
+---
+
+## 6. Ch12 에러 처리 & UX 개선 상세 가이드
+
+### 6.1 에러 메시지 변환 규칙 (`lib/error-message.ts`)
+
+**목적**: Supabase 및 네트워크 에러를 사용자 친화적인 메시지로 변환하여 개발자 관련 메시지가 노출되지 않도록 합니다.
+
+**사용법**:
+```typescript
+import { convertErrorToUserMessage } from "@/lib/error-message";
+
+try {
+  await signUpWithEmail(email, password);
+} catch (error) {
+  const userMessage = convertErrorToUserMessage(error);
+  console.error("[Component] Raw error:", error); // 개발자용 상세 로그
+  setError(userMessage); // 사용자 친화적 메시지 표시
+}
+```
+
+**변환 규칙 상세**:
+
+| 우선순위 | 에러 조건 | 감지 코드 | 사용자 메시지 | 기술 설명 |
+|---------|---------|---------|------------|----------|
+| 1 | RLS 정책 위반 | `error.code === "42501"` 또는 `error.message.includes("row-level security")` | "이 작업을 수행할 권한이 없습니다." | Row-Level Security 정책에 의해 거부됨. 주로 UPDATE/DELETE 작업에서 발생 (Ch11) |
+| 2 | 네트워크 연결 오류 | `error.message.toLowerCase().includes("failed to fetch")` | "인터넷 연결을 확인해주세요." | CORS, DNS, 또는 서버 접근 불가 상황 |
+| 3 | 리소스 없음 | 에러 메시지에 `"not found"`, `"no rows"` 포함 또는 HTTP 404 | "요청한 게시글을 찾을 수 없습니다." | 데이터 조회 시 결과가 없음 |
+| 4 | 기타 모든 에러 | — | 원본 메시지 (있으면) 또는 "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요." | 미처리된 에러 유형 |
+
+### 6.2 폼 검증 규칙
+
+#### 로그인 페이지 (`app/login/LoginClient.tsx`)
+- **필드 검증**:
+  - 이메일: `type="email"` HTML5 검증 + 필수 입력
+  - 비밀번호: 필수 입력
+- **제출 버튼**: 이메일 + 비밀번호 모두 입력되었을 때만 활성화
+- **상태 표시**: 로딩 중 버튼 비활성화 + 스피너 표시
+
+#### 회원가입 페이지 (`app/signup/page.tsx`)
+- **필드 검증**:
+  - 이메일: `type="email"` HTML5 검증 + 필수 입력
+  - 비밀번호: 필수 입력, 최소 6자 이상
+  - 비밀번호 확인: 필수 입력, 비밀번호와 정확히 일치
+- **검증 순서**:
+  1. 클라이언트: 두 비밀번호 일치 확인
+  2. 클라이언트: 비밀번호 길이 확인
+  3. 서버: Supabase 회원가입 시도
+- **에러 메시지**:
+  - 불일치: "비밀번호가 일치하지 않습니다"
+  - 짧음: "비밀번호는 최소 6자 이상이어야 합니다"
+  - Supabase 에러: `convertErrorToUserMessage` 적용
+- **제출 버튼**: 모든 필드 입력 + 로딩 중 아님 + Supabase 구성됨 시 활성화
+
+### 6.3 화면별 Loading/Error/Empty 상태 (계획)
+
+**구현 예정 파일들**:
+
+| 경로 | 파일 | 목적 | 상태 |
+|-----|------|------|------|
+| `/posts` | `loading.tsx` | 포스트 목록 로딩 중 스켈레톤/스피너 표시 | ⏳ |
+| `/posts` | `error.tsx` | 포스트 목록 조회 실패 시 재시도 버튼 포함 | ⏳ |
+| `/posts/[id]` | `loading.tsx` | 포스트 상세 로딩 중 스켈레톤/스피너 표시 | ⏳ |
+| `/posts/[id]` | `error.tsx` | 포스트 상세 조회 실패 또는 404 처리 | ⏳ |
+| `/mypage` | `loading.tsx` | 마이페이지 로딩 중 표시 | ⏳ |
+| `/mypage` | `error.tsx` | 마이페이지 조회 실패 시 처리 | ⏳ |
+
+**Empty State 컴포넌트** (`components/EmptyState.tsx` — 기존):
+- 포스트 목록 비었을 때: "게시글이 없습니다."
+- 검색 결과 없을 때: "검색 결과가 없습니다."
+
+### 6.4 개발자용 로깅 가이드
+
+모든 에러 처리에서 **최소한 다음은 유지**:
+```typescript
+// 1. Supabase 에러
+if (authError) {
+  console.error("[ComponentName] Auth error:", authError);
+}
+
+// 2. 예상치 못한 에러
+catch (e) {
+  console.error("[ComponentName] Unexpected error:", e);
+}
+```
+
+이를 통해:
+- 개발 중 실제 에러 원인 파악 가능
+- 사용자에게는 친화적 메시지만 노출
+- 프로덕션 로그에서 문제 추적 가능
+
+---
+
+## 다음 작업 순서
+
+### Ch10 — Posts CRUD 완성 (다음 우선순위)
+1. 포스트 조회/수정/삭제 API 구현
+2. 포스트 상세 페이지 데이터 연결 완료
+3. 작성자 전용 수정/삭제 UI 구현 (보안은 Ch11)
+4. 화면별 loading/error/empty 상태 구현
+
+### Ch11 — RLS 정책 적용 (그 다음)
+1. 마이그레이션 파일 작성 (SQL)
+2. Supabase CLI로 정책 적용 및 테스트
+3. 서버 API에서 RLS 검증 (선택)
+
+### 통합 테스트
+- 로그인/회원가입 시나리오
+- 포스트 작성/수정/삭제 시나리오
+- 권한 별 접근 제한 검증
 
 ---
 
