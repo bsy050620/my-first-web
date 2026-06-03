@@ -1,7 +1,7 @@
 import Link from "next/link";
 import PostActions from "@/components/PostActions";
 import ErrorState from "@/components/ErrorState";
-import { getDisplayName } from "@/lib/posts";
+import { getDisplayName, type Post } from "@/lib/posts";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -58,7 +58,7 @@ export default async function PostPage({ params }: Props) {
   }
 
   const createdDate = new Date(post.created_at).toISOString().slice(0, 10);
-  const displayName = getDisplayName(post);
+  const displayName = getDisplayName(post as unknown as Post);
 
   return (
     <article className="max-w-3xl mx-auto py-12 px-4">
