@@ -24,6 +24,16 @@ export default function PostsPageClient() {
           `[PostsPageClient] API error: ${response.status}`,
           response.statusText
         );
+        
+        // 에러 응답 상세 정보 로깅
+        const responseText = await response.text();
+        try {
+          const errorData = JSON.parse(responseText);
+          console.error("[PostsPageClient] API error details:", errorData);
+        } catch {
+          console.error("[PostsPageClient] Raw error response:", responseText);
+        }
+        
         throw new Error("게시글을 불러오는 데 실패했습니다");
       }
 

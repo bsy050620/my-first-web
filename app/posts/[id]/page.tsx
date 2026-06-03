@@ -1,6 +1,7 @@
 import Link from "next/link";
 import PostActions from "@/components/PostActions";
 import ErrorState from "@/components/ErrorState";
+import { getDisplayName } from "@/lib/posts";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -23,9 +24,19 @@ export default async function PostPage({ params }: Props) {
     { cookies: cookieStore },
   );
 
+  // profiles 테이블과 조인하여 사용자명 포함
   const { data: post, error } = await supabase
     .from("posts")
-    .select("id,title,content,user_id,created_at")
+    .select(
+      `id,
+      title,
+      content,
+      user_id,
+      created_at,
+      profiles:user_id(
+        username
+      )`
+    )
     .eq("id", id)
     .single();
 
@@ -46,15 +57,14 @@ export default async function PostPage({ params }: Props) {
     );
   }
 
-  const createdDate = post.created_at
-    ? new Date(post.created_at).toISOString().slice(0, 10)
-    : "";
+  const createdDate = new Date(post.created_at).toISOString().slice(0, 10);
+  const displayName = getDisplayName(post);
 
   return (
     <article className="max-w-3xl mx-auto py-12 px-4">
       <h1 className="text-3xl font-extrabold mb-2">{post.title}</h1>
       <p className="text-sm text-gray-500 mb-6">
-        {post.user_id} · {createdDate}
+        {displayName} · {createdDate}
       </p>
 
       <div className="prose prose-lg mb-8">{post.content}</div>

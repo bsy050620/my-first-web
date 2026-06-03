@@ -1,5 +1,7 @@
 import Link from "next/link";
 import React from "react";
+import type { Post } from "@/lib/posts";
+import { getDisplayName } from "@/lib/posts";
 import {
   Card,
   CardHeader,
@@ -10,18 +12,9 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-type Post = {
-  id: number | string;
-  title: string;
-  content?: string;
-  user_id?: string;
-  created_at?: string;
-};
-
 export default function PostListItem({ post }: { post: Post }) {
-  const createdDate = post.created_at
-    ? new Date(post.created_at).toISOString().slice(0, 10)
-    : "";
+  const createdDate = new Date(post.created_at).toISOString().slice(0, 10);
+  const displayName = getDisplayName(post);
 
   return (
     <article key={post.id}>
@@ -29,7 +22,7 @@ export default function PostListItem({ post }: { post: Post }) {
         <CardHeader>
           <CardTitle className="px-4 py-4">{post.title}</CardTitle>
           <CardDescription className="px-4 pb-2">
-            {post.user_id} · {createdDate}
+            {displayName} · {createdDate}
           </CardDescription>
         </CardHeader>
 

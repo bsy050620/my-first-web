@@ -44,10 +44,30 @@ export async function GET() {
       { cookies: cookieStore },
     );
 
-    const { data, error } = await supabase
+    // profiles 테이블과 조인하여 사용자명 포함
+    // user_id → profiles(id) 외래키 관계
+    let data, error;
+    
+    ({ data, error } = await supabase
       .from('posts')
-      .select('id,title,content,user_id,created_at')
-      .order('created_at', { ascending: false });
+      .select(
+        `id,
+        title,
+        content,
+        user_id,
+        created_at,
+        profiles!user_id(username)`
+      )
+      .order('created_at', { ascending: false }));
+
+    // 조인 쿼리 실패 시 profiles 없이 조회 (폴백)
+    if (error) {
+      console.warn('[API GET /posts] Join query failed, attempting fallback:', error.code, error.message);
+      ({ data, error } = await supabase
+        .from('posts')
+        .select('id,title,content,user_id,created_at')
+        .order('created_at', { ascending: false }));
+    }
 
     if (error) {
       console.error('[API GET /posts] Supabase error:', {
@@ -60,7 +80,8 @@ export async function GET() {
         { 
           error: { 
             message: '게시글을 불러오는 데 실패했습니다',
-            debug: `[${error.code}] ${error.message}`
+            debug: `[${error.code}] ${error.message}`,
+            details: error.details
           } 
         },
         { status: 400 }

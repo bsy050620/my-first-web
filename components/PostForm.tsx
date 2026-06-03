@@ -131,7 +131,8 @@ export default function PostForm({ initialData, postId }: Props) {
     setLoading(true);
 
     try {
-      const payload: any = { title, content, user_id: user.id };
+      // user_id는 서버에서만 설정 (클라이언트 입력 금지)
+      const payload = { title, content };
       const url = postId ? `/api/posts/${postId}` : "/api/posts";
       const method = postId ? "PATCH" : "POST";
 

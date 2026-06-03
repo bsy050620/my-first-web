@@ -27,6 +27,43 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       { cookies: cookieStore },
     );
 
+    // 인증 정보 확인
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData?.user) {
+      console.error("[API PATCH /posts/[id]] Auth error:", authError?.message);
+      return NextResponse.json(
+        { error: { message: "인증이 필요합니다" } },
+        { status: 401 }
+      );
+    }
+
+    // 포스트 조회 및 작성자 확인
+    const { data: post, error: fetchError } = await supabase
+      .from("posts")
+      .select("user_id")
+      .eq("id", id)
+      .single();
+
+    if (fetchError || !post) {
+      console.error(`[API PATCH /posts/${id}] Post not found:`, fetchError);
+      return NextResponse.json(
+        { error: { message: "게시글을 찾을 수 없습니다" } },
+        { status: 404 }
+      );
+    }
+
+    // 권한 확인: 작성자만 수정 가능
+    if (post.user_id !== authData.user.id) {
+      console.warn(
+        `[API PATCH /posts/${id}] Permission denied: user ${authData.user.id} attempted to edit post by ${post.user_id}`
+      );
+      return NextResponse.json(
+        { error: { message: "수정 권한이 없습니다" } },
+        { status: 403 }
+      );
+    }
+
+    // 포스트 수정
     const { data, error } = await supabase
       .from("posts")
       .update({ title, content })
@@ -66,6 +103,43 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
       { cookies: cookieStore },
     );
 
+    // 인증 정보 확인
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData?.user) {
+      console.error("[API DELETE /posts/[id]] Auth error:", authError?.message);
+      return NextResponse.json(
+        { error: { message: "인증이 필요합니다" } },
+        { status: 401 }
+      );
+    }
+
+    // 포스트 조회 및 작성자 확인
+    const { data: post, error: fetchError } = await supabase
+      .from("posts")
+      .select("user_id")
+      .eq("id", id)
+      .single();
+
+    if (fetchError || !post) {
+      console.error(`[API DELETE /posts/${id}] Post not found:`, fetchError);
+      return NextResponse.json(
+        { error: { message: "게시글을 찾을 수 없습니다" } },
+        { status: 404 }
+      );
+    }
+
+    // 권한 확인: 작성자만 삭제 가능
+    if (post.user_id !== authData.user.id) {
+      console.warn(
+        `[API DELETE /posts/${id}] Permission denied: user ${authData.user.id} attempted to delete post by ${post.user_id}`
+      );
+      return NextResponse.json(
+        { error: { message: "삭제 권한이 없습니다" } },
+        { status: 403 }
+      );
+    }
+
+    // 포스트 삭제
     const { data, error } = await supabase
       .from("posts")
       .delete()
