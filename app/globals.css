@@ -127,3 +127,14 @@
     @apply font-sans;
     }
 }
+
+/* 좋아요 버튼 하트 팝 애니메이션 */
+@keyframes ping-once {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+.animate-ping-once {
+  animation: ping-once 0.35s ease-in-out;
+}

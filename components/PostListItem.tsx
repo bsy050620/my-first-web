@@ -2,6 +2,7 @@ import Link from "next/link";
 import React from "react";
 import type { Post } from "@/lib/posts";
 import { getDisplayName } from "@/lib/posts";
+import LikeButton from "@/components/LikeButton";
 import {
   Card,
   CardHeader,
@@ -33,10 +34,11 @@ export default function PostListItem({ post }: { post: Post }) {
         </CardContent>
 
         <CardFooter>
-          <div className="px-4 w-full">
+          <div className="px-4 w-full flex items-center justify-between">
             <Link href={`/posts/${post.id}`}>
               <Button variant="ghost">상세</Button>
             </Link>
+            <LikeButton postId={post.id} compact />
           </div>
         </CardFooter>
       </Card>

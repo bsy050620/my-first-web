@@ -1,6 +1,7 @@
 import Link from "next/link";
 import PostActions from "@/components/PostActions";
 import ErrorState from "@/components/ErrorState";
+import LikeButton from "@/components/LikeButton";
 import { getDisplayName, type Post } from "@/lib/posts";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
@@ -101,6 +102,11 @@ export default async function PostPage({ params }: Props) {
       </p>
 
       <div className="prose prose-lg mb-8">{postData.content}</div>
+
+      {/* 좋아요 버튼 */}
+      <div className="mb-6">
+        <LikeButton postId={postData.id} />
+      </div>
 
       <div className="flex items-center gap-4">
         <Link href="/posts" className="text-blue-600 hover:underline">
