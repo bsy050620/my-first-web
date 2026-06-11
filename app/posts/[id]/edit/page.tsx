@@ -36,7 +36,7 @@ export default async function EditPage({ params }: Props) {
   // 2. 포스트 조회
   const { data: post, error } = await supabase
     .from("posts")
-    .select("id,title,content,user_id,created_at")
+    .select("id,title,content,user_id,created_at,image_url")
     .eq("id", id)
     .single();
 
@@ -80,7 +80,7 @@ export default async function EditPage({ params }: Props) {
   return (
     <div className="max-w-3xl mx-auto py-12 px-4">
       <h1 className="text-2xl font-bold mb-6">게시글 수정</h1>
-      <PostForm initialData={{ title: post.title, content: post.content }} postId={String(id)} />
+      <PostForm initialData={{ title: post.title, content: post.content, image_url: post.image_url }} postId={String(id)} />
     </div>
   );
 }

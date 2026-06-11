@@ -9,6 +9,7 @@ export type Post = {
   content: string;
   user_id: string; // profiles.id 외래키 (UUID)
   created_at: string; // ISO 8601 타임스탬프
+  image_url?: string | null; // 이미지 URL (선택)
   profiles?: {
     username: string | null; // 프로필에서 조인된 사용자명
   };

@@ -35,6 +35,7 @@ export default async function PostPage({ params }: Props) {
       content,
       user_id,
       created_at,
+      image_url,
       profiles:user_id(
         username
       )`
@@ -52,7 +53,7 @@ export default async function PostPage({ params }: Props) {
     );
     const fallback = await supabase
       .from("posts")
-      .select("id, title, content, user_id, created_at")
+      .select("id, title, content, user_id, created_at, image_url")
       .eq("id", id)
       .single();
     
@@ -101,7 +102,18 @@ export default async function PostPage({ params }: Props) {
         {displayName} · {createdDate}
       </p>
 
-      <div className="prose prose-lg mb-8">{postData.content}</div>
+      {/* 포스트 첨부 이미지 출력 */}
+      {postData.image_url && (
+        <div className="mb-8 overflow-hidden rounded-2xl border border-gray-200/80 bg-gray-50 shadow-sm transition-all duration-300 hover:shadow-md">
+          <img
+            src={postData.image_url}
+            alt={postData.title}
+            className="w-full h-auto object-cover max-h-[500px] mx-auto block"
+          />
+        </div>
+      )}
+
+      <div className="prose prose-lg mb-8 whitespace-pre-wrap">{postData.content}</div>
 
       {/* 좋아요 버튼 */}
       <div className="mb-6">

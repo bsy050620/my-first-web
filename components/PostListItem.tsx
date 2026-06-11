@@ -19,9 +19,18 @@ export default function PostListItem({ post }: { post: Post }) {
 
   return (
     <article key={post.id}>
-      <Card className="p-0 h-full flex flex-col">
+      <Card className="p-0 h-full flex flex-col overflow-hidden border-gray-200/80 transition-all duration-300 hover:shadow-md hover:border-gray-300">
+        {post.image_url && (
+          <div className="relative w-full h-48 bg-gray-50 border-b border-gray-100 overflow-hidden">
+            <img
+              src={post.image_url}
+              alt={post.title}
+              className="w-full h-full object-cover transition-transform duration-500 hover:scale-[1.03]"
+            />
+          </div>
+        )}
         <CardHeader>
-          <CardTitle className="px-4 py-4">{post.title}</CardTitle>
+          <CardTitle className="px-4 py-4 line-clamp-1">{post.title}</CardTitle>
           <CardDescription className="px-4 pb-2">
             {displayName} · {createdDate}
           </CardDescription>

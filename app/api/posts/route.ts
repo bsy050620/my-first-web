@@ -56,6 +56,7 @@ export async function GET() {
         content,
         user_id,
         created_at,
+        image_url,
         profiles!user_id(username)`
       )
       .order('created_at', { ascending: false }));
@@ -65,7 +66,7 @@ export async function GET() {
       console.warn('[API GET /posts] Join query failed, attempting fallback:', error.code, error.message);
       ({ data, error } = await supabase
         .from('posts')
-        .select('id,title,content,user_id,created_at')
+        .select('id,title,content,user_id,created_at,image_url')
         .order('created_at', { ascending: false }));
     }
 
@@ -110,7 +111,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { title, content } = body;
+    const { title, content, image_url } = body;
 
     if (!title || !title.trim()) {
       return NextResponse.json(
@@ -177,7 +178,7 @@ export async function POST(req: Request) {
 
     const { data, error } = await supabase
       .from('posts')
-      .insert([{ title, content, user_id }])
+      .insert([{ title, content, image_url, user_id }])
       .select();
 
     if (error) {

@@ -6,7 +6,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   try {
     const { id } = await Promise.resolve(params);
     const body = await req.json();
-    const { title, content } = body;
+    const { title, content, image_url } = body;
 
     if (!title || !title.trim()) {
       return NextResponse.json(
@@ -66,7 +66,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     // 포스트 수정
     const { data, error } = await supabase
       .from("posts")
-      .update({ title, content })
+      .update({ title, content, image_url })
       .eq("id", id)
       .select();
 
