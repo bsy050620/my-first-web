@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -19,16 +20,37 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className={cn("font-sans", geist.variable)}>
+    <html lang="ko" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('theme');
+                  if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch (e) {}
+              })()
+            `,
+          }}
+        />
+      </head>
       <body className="flex flex-col min-h-screen">
-        <AuthProvider>
-          <Header />
+        <ThemeProvider>
+          <AuthProvider>
+            <Header />
 
-          <main className="max-w-4xl mx-auto p-6 flex-1">{children}</main>
+            <main className="max-w-4xl mx-auto p-6 flex-1">{children}</main>
 
-          <Footer />
-        </AuthProvider>
+            <Footer />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
 }
+

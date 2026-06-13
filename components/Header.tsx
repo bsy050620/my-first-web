@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Header() {
   const router = useRouter();
@@ -65,9 +66,10 @@ export default function Header() {
             </>
           )}
 
-          <div className="w-8 h-8 rounded-full bg-muted" aria-hidden />
+          <ThemeToggle />
         </div>
       </div>
     </nav>
   );
 }
+
